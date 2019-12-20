@@ -138,6 +138,19 @@ module.exports = {
       title: 'Charts',
       info: 'Charts data visualization'
     },
+    /* can be an worflow (Chaman) block */
+    workflow: {
+      types: [ 'Destination' ],
+      hasWidget: true,
+      isMultinstance: true,
+      inputs: [
+        {
+          name: 'dataIn',
+          type: 'rpc',
+          method: 'process'
+        }
+      ]
+    },
     /* configuration data schema */
     schema: {
       title: 'Configuration',
@@ -152,11 +165,17 @@ module.exports = {
         type: {
           title: 'Chart type',
           type: 'string',
+          enum: [
+            'bar', 'bubble', 'column', 'heatmap', 'line', /* 'mixed', */ 'pie'
+          ],
           _meta: {
-            type: null,
-            selection: {
-              provider: 'chart-picker',
-              event: 'selection:chart'
+            type: 'enum',
+            component: {
+              name: 'ig-image-based-picker',
+              properties: {
+                imageBasePath: '$$service(charts)/assets/thumbnails/charts-',
+                imageType: 'jpg'
+              }
             },
             i18n: {
               'Chart type': [ 'Type de graphique', 'Tipó de grafico' ]
@@ -190,6 +209,36 @@ module.exports = {
             }
           }
         },
+        timeWindow: {
+          title: 'Time window (ms)',
+          type: 'number',
+          default: 80000,
+          _meta: {
+            type: null,
+            showIf: {
+              jsonpath: '$.selfTrig',
+              condition: 'eq',
+              value: true
+            },
+            i18n: {
+              'Time window (ms)': [
+                'Fenêtre temporelle (ms)',
+                'Ventana de tiempo (ms)'
+              ]
+            }
+          }
+        },
+        rawVizualisation: {
+          title: 'Raw vizualisation',
+          type: 'boolean',
+          default: false,
+          _meta: {
+            type: null,
+            i18n: {
+              'Raw vizualisation': [ 'Visualisation brute', 'Visualización en bruto' ]
+            }
+          }
+        },
         series: {
           title: 'Series',
           type: 'array',
@@ -199,11 +248,12 @@ module.exports = {
             properties: {
               name: {
                 type: 'string',
-                title: 'Header key',
+                title: 'Name',
+                default: '',
                 _meta: {
                   type: null,
                   i18n: {
-                    'Header key': [ 'Clé', 'Clave' ]
+                    'Name': [ 'Nom', 'Nombre' ]
                   },
                   showIf: [
                     {
@@ -212,7 +262,7 @@ module.exports = {
                       value: 'mixed'
                     },
                     {
-                      condition: '||'
+                      operator: '||'
                     },
                     {
                       jsonpath: '$.type',
@@ -220,7 +270,7 @@ module.exports = {
                       value: 'column'
                     },
                     {
-                      condition: '||'
+                      operator: '||'
                     },
                     {
                       jsonpath: '$.type',
@@ -228,7 +278,7 @@ module.exports = {
                       value: 'bar'
                     },
                     {
-                      condition: '||'
+                      operator: '||'
                     },
                     {
                       jsonpath: '$.type',
@@ -242,11 +292,8 @@ module.exports = {
                 title: 'Color',
                 type: 'string',
                 _meta: {
-                  type: null,
-                  selection: {
-                    provider: 'ig-color-picker',
-                    event: 'selection:color'
-                  },
+                  type: 'color',
+                  default: 'deepskyblue',
                   i18n: {
                     'Color': [ 'Couleur', 'Color' ]
                   },
@@ -257,7 +304,7 @@ module.exports = {
                       value: 'mixed'
                     },
                     {
-                      condition: '||'
+                      operator: '||'
                     },
                     {
                       jsonpath: '$.type',
@@ -265,7 +312,7 @@ module.exports = {
                       value: 'column'
                     },
                     {
-                      condition: '||'
+                      operator: '||'
                     },
                     {
                       jsonpath: '$.type',
@@ -273,7 +320,7 @@ module.exports = {
                       value: 'bar'
                     },
                     {
-                      condition: '||'
+                      operator: '||'
                     },
                     {
                       jsonpath: '$.type',
@@ -289,12 +336,9 @@ module.exports = {
                 enum: [ 'X', 'Y' ],
                 _meta: {
                   type: 'enum',
-                  selection: {
-                    provider: 'ig-color-picker',
-                    event: 'selection:color'
-                  },
+                  default: 'X',
                   i18n: {
-                    'Header key': [ 'Clé', 'Clave' ]
+                    'Axis': [ 'Axe', 'Eje' ]
                   },
                   showIf: [
                     {
@@ -303,7 +347,7 @@ module.exports = {
                       value: 'mixed'
                     },
                     {
-                      condition: '||'
+                      operator: '||'
                     },
                     {
                       jsonpath: '$.type',
@@ -311,7 +355,7 @@ module.exports = {
                       value: 'column'
                     },
                     {
-                      condition: '||'
+                      operator: '||'
                     },
                     {
                       jsonpath: '$.type',
@@ -319,7 +363,7 @@ module.exports = {
                       value: 'bar'
                     },
                     {
-                      condition: '||'
+                      operator: '||'
                     },
                     {
                       jsonpath: '$.type',
@@ -332,6 +376,7 @@ module.exports = {
               path: {
                 type: 'string',
                 title: 'Data path',
+                default: '',
                 _meta: {
                   type: null,
                   selection: {
@@ -339,7 +384,7 @@ module.exports = {
                     event: 'selection:jsonpath'
                   },
                   i18n: {
-                    'Data path': [ 'Chemin de la donnée', 'Ruta de datos' ]
+                    'Data path': [ 'Chemin des données', 'Ruta de datos' ]
                   }
                 }
               },
@@ -353,6 +398,7 @@ module.exports = {
                     name: {
                       type: 'string',
                       title: 'Name',
+                      default: '',
                       _meta: {
                         type: null,
                         i18n: {
@@ -363,12 +409,9 @@ module.exports = {
                     color: {
                       title: 'Color',
                       type: 'string',
+                      default: 'deepskyblue',
                       _meta: {
-                        type: null,
-                        selection: {
-                          provider: 'ig-color-picker',
-                          event: 'selection:color'
-                        },
+                        type: 'color',
                         i18n: {
                           'Color': [ 'Couleur', 'Color' ]
                         }
@@ -388,6 +431,7 @@ module.exports = {
                     parameters: {
                       title: 'Parameters',
                       type: 'string',
+                      default: '',
                       _meta: {
                         type: null,
                         i18n: {

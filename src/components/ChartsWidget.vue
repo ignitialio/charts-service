@@ -1,11 +1,11 @@
 <template>
-  <div :id="id" class="chartwidget-layout">
+  <div :id="'cw_' + id" class="chartwidget-layout">
     <apexchart ref="chart"
       v-if="chartOptions"
       v-show="series && series.length > 0"
       :width="width - 32" :height="height - 32"
       class="chartwidget-chart"
-      :type="settings.chartType" :options="chartOptions" :series="series"></apexchart>
+      :type="settings.type" :options="chartOptions" :series="series"></apexchart>
   </div>
 </template>
 
@@ -15,13 +15,13 @@ import cloneDeep from 'lodash/cloneDeep'
 
 export default {
   props: {
+    id: String,
     value: Object,
     width: Number,
     height: Number
   },
   data: () => {
     return {
-      id:  'cw_' + Math.random().toString(36).slice(2, 10),
       settings: null,
       chartOptions: null,
       series: []
@@ -97,8 +97,8 @@ export default {
         let categories = []
         let rawData = data || await this.updateRawData()
 
-        if (settings.chartType === 'pie' ||
-          settings.chartType === 'donut') { 
+        if (settings.type === 'pie' ||
+          settings.type === 'donut') { 
           for (let serie of settings.series) {
             this.computeCategories(serie)
           }
@@ -129,7 +129,7 @@ export default {
               this.chartOptions = {
                 chart: {
                   id: this.id,
-                  stacked: settings.chartType === 'bar'
+                  stacked: settings.type === 'bar'
                 },
                 xaxis: {
                   categories: categories,
@@ -138,7 +138,7 @@ export default {
                   }
                 },
                 colors: colors,
-                horizontal: settings.chartType === 'bar',
+                horizontal: settings.type === 'bar',
                 dataLabels: {
                   enabled: false
                 }
@@ -219,7 +219,7 @@ export default {
         this.buildSeries(data)
       }
 
-      switch (this.settings.chartType) {
+      switch (this.settings.type) {
         case 'line':
           for (let i = 0; i < this.series.length; i++) {
             let serie = this.series[i]

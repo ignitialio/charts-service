@@ -1,7 +1,8 @@
 import VueApexCharts from 'vue-apexcharts'
 
 import Charts from './components/Charts.vue'
-import ChartPicker from './components/ChartPicker.vue'
+import ChartsWidget from './components/ChartsWidget.vue'
+import RawData from './components/RawData.vue'
 
 // function to be called when service loaded into web app:
 // naming rule: iios_<service_unique_name>
@@ -9,8 +10,8 @@ import ChartPicker from './components/ChartPicker.vue'
 global.iios_charts = function(Vue) {
   // Warning: component name must be globally unique in your host app
   Vue.component('charts', Charts)
-  // other components
-  Vue.component('chart-picker', ChartPicker)
+  Vue.component('charts-widget', ChartsWidget)
+  Vue.component('charts-raw-data', RawData)
   // apexcharts
   Vue.component('apexchart', VueApexCharts)
 
@@ -20,7 +21,7 @@ global.iios_charts = function(Vue) {
       {
         path: '/service-charts',
         title: 'Charts',
-        svgIcon: '$$service(charts)/assets/charts.svg',
+        svgIcon: '$$service(charts)/assets/charts-64.png',
         section: 'Services',
         anonymousAccess: true,
         hideIfLogged: false,

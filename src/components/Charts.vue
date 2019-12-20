@@ -4,13 +4,22 @@
       v-if="!!settings && !!schema && !widgetMode" :root="settings"
       v-model="settings" :schema="schema"></ig-form>
 
-    <chart-widget v-if="widgetMode" :settings="settings" class="charts-widget"/>
+    <chart-widget v-if="widgetMode && !settings.rawVizualisation"
+      :instanceId="blockSettings.instance"
+      :settings="settings" class="charts-widget"/>
+
+    <charts-raw-data v-if="settings.rawVizualisation" class="charts-widget"
+      :instanceId="blockSettings.instance"/>
   </div>
 </template>
 
 <script>
 export default {
   props: {
+    blockSettings: {
+      type: Object,
+      required: true
+    },
     widgetMode: {
       type: Boolean,
       default: false
@@ -23,6 +32,8 @@ export default {
         type: 'line',
         selfTrig: false,
         interval: 1000,
+        timeWindow: 80000,
+        rawVizualisation: false,
         series: []
       },
       schema: null

@@ -1,24 +1,72 @@
 const Service = require('@ignitial/iio-services').Service
+const utils = require('@ignitial/iio-services').utils
 const config = require('./config')
+
+class ChartsInstance {
+  constructor(id) {
+    this._id = id
+  }
+
+  // process data for display
+  // ***************************************************************************
+  process(data) {
+    /* @_GET_ */
+    return new Promise((resolve, reject) => {
+      this._pushEvent('data:' + this._id, data)
+      resolve()
+    })
+  }
+}
 
 class Charts extends Service {
   constructor(options) {
     super(options)
+
+    this._instances = {}
   }
 
-  // provides some services here
-  // ***************************************************************************
-  oneGetServiceMethod(args) {
-    /* @_GET_ */
+  addInstance(id) {
+    /* @_POST_ */
     return new Promise((resolve, reject) => {
-      resolve({ somedata: 'some value', args: args })
+      try {
+        if (this._instances[id]) {
+          delete this._instances[id]
+        }
+
+        this._instances[id] = new ChartsInstance(id)
+        let methods = utils.getMethods(this._instances[id])
+
+        for (let method of methods) {
+          this[method + '_' + id] = this._instances[id][method]
+        }
+
+        resolve()
+      } catch (err) {
+        reject(err)
+      }
     })
   }
 
-  onePostServiceMethod(args) {
-    /* @_POST_ */
+  removeInstance(id) {
+    /* @_DELETE_ */
     return new Promise((resolve, reject) => {
-      resolve({ somedata: 'some value', args: args })
+      delete this._instances[id]
+
+      resolve()
+    })
+  }
+
+  getInstances() {
+    /* @_GET_ */
+    return new Promise((resolve, reject) => {
+      resolve(Object.keys(this._instances))
+    })
+  }
+
+  getMethods(instanceId) {
+    /* @_GET_ */
+    return new Promise((resolve, reject) => {
+      resolve(utils.getMethods(this).filter(e => e.match(instanceId)))
     })
   }
 }
