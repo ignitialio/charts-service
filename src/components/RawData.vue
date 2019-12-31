@@ -28,11 +28,11 @@ export default {
       onData: this.handleData.bind(this)
     }
 
-    this.$ws.socket.on('service:event:charts:data:' + instanceId,
+    this.$ws.socket.on('service:event:charts:data:' + this.instanceId,
       this._listeners.onData)
   },
   beforeDestroy() {
-    this.$ws.socket.off('service:event:charts:data:' + instanceId, 
+    this.$ws.socket.off('service:event:charts:data:' + this.instanceId, 
       this._listeners.onData)
   }
 }

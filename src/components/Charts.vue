@@ -1,28 +1,36 @@
 <template>
   <div :id="id" class="charts-layout">
     <ig-form class="charts-configuration"
-      v-if="!!settings && !!schema && !widgetMode" :root="settings"
-      v-model="settings" :schema="schema"></ig-form>
+      v-if="!!settings && !!schema && options" :root="settings"
+      v-model="settings" :schema="schema"
+      @input="handleSettings"></ig-form>
 
-    <chart-widget v-if="widgetMode && !settings.rawVizualisation"
-      :instanceId="blockSettings.instance"
+    <chart-widget v-if="!options && !settings.rawVizualisation"
+      :instanceId="node.instance"
       :settings="settings" class="charts-widget"/>
 
-    <charts-raw-data v-if="settings.rawVizualisation" class="charts-widget"
-      :instanceId="blockSettings.instance"/>
+    <charts-raw-data v-if="!options && settings.rawVizualisation" class="charts-widget"
+      :instanceId="node.instance"/>
   </div>
 </template>
 
 <script>
 export default {
   props: {
-    blockSettings: {
-      type: Object,
-      required: true
+    /* used when destination for worklows */
+    node: {
+      type: Object
     },
-    widgetMode: {
-      type: Boolean,
-      default: false
+    options: {
+      type: Object
+    }
+  },
+  watch: {
+    options: {
+      handler: function(val) {
+        this.settings = JSON.parse(JSON.stringify(this.options))
+      },
+      deep: true
     }
   },
   data: () => {
@@ -31,7 +39,7 @@ export default {
       settings: {
         type: 'line',
         selfTrig: false,
-        interval: 1000,
+        period: 1000,
         timeWindow: 80000,
         rawVizualisation: false,
         series: []
@@ -43,8 +51,24 @@ export default {
 
   },
   methods: {
+    _preset() {
+      this.$services.waitForService('charts').then(chartsService => {
+        chartsService.workflowNodePreset(this.node).catch(err => console.log(err))
+      }).catch(err => console.log(err))
+    },
+    handleSettings(val) {
+      console.log('CHARTS', $j(val))
+      this.$emit('update:options', val)
+      this._preset()
+    }
   },
   mounted() {
+    if (this.options) {
+      this.settings = JSON.parse(JSON.stringify(this.options))
+    } else {
+      this.$emit('update:options', this.settings)
+    }
+
     // dev
     // refresh service UI on hot reload
     this.$services.once('service:up', service => {
@@ -57,6 +81,7 @@ export default {
     this.$services.waitForService('charts').then(async chartsService => {
       try {
         this.schema = this.$services.servicesDico.charts.options.schema
+        this._preset()
       } catch (err) {
         console.log(err)
       }

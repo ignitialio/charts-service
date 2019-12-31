@@ -60,7 +60,7 @@ export default {
        Activate real time update
        ------------------------------------------------------------------------- */
     async activateRealtime() {
-      if (this.settings.updateInterval) {
+      if (this.settings.period) {
         if (this.settings.eventDriven) {
           this.listeners = {
             handleData: this.updateSeriesWithOverflowControl.bind(this)
@@ -73,7 +73,7 @@ export default {
           }
 
           this.updateTimer = setInterval(this.updateSeries,
-            this.settings.updateInterval)
+            this.settings.period)
         }
       }
     },

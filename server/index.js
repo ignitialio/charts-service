@@ -5,6 +5,27 @@ const config = require('./config')
 class ChartsInstance {
   constructor(id) {
     this._id = id
+
+    this.interval = null
+  }
+
+  _preset(period) {
+    return new Promise((resolve, reject) => {
+      if (this.interval) {
+        clearInterval(this.interval)
+        this.interval = null
+      }
+
+      this.interval = setInterval(this.process, period)
+      resolve()
+    })
+  }
+
+  _clearPreset() {
+    return new Promise((resolve, reject) => {
+      clearInterval(this.interval)
+      resolve()
+    })
   }
 
   // process data for display
@@ -53,6 +74,38 @@ class Charts extends Service {
       delete this._instances[id]
 
       resolve()
+    })
+  }
+
+  workflowNodePreset(node) {
+    return new Promise((resolve, reject) => {
+      if (this._instances[node.instance]) {
+        if (node.options.period) {
+          this._instances[node.instance]._preset(node.options.period).then(() => {
+            resolve()
+          }).catch(err => reject(err))
+        } else {
+          resolve()
+        }
+      } else {
+        reject(new Error('missing instance'))
+      }
+    })
+  }
+
+  workflowNodeClearPreset(node) {
+    return new Promise((resolve, reject) => {
+      if (this._instances[node.instance]) {
+        if (node.options.period) {
+          this._instances[node.instance]._clearPreset(node.options.period).then(() => {
+            resolve()
+          }).catch(err => reject(err))
+        } else {
+          resolve()
+        }
+      } else {
+        reject(new Error('missing instance'))
+      }
     })
   }
 

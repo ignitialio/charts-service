@@ -193,8 +193,8 @@ module.exports = {
             }
           }
         },
-        interval: {
-          title: 'Interval (ms)',
+        period: {
+          title: 'Period (ms)',
           type: 'number',
           default: 1000,
           _meta: {
@@ -205,7 +205,7 @@ module.exports = {
               value: true
             },
             i18n: {
-              'Interval (ms)': [ 'Intervallle (ms)', 'Intervalo (ms)' ]
+              'Period (ms)': [ 'Période (ms)', 'Período (ms)' ]
             }
           }
         },
