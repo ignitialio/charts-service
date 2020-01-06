@@ -1,12 +1,13 @@
-const Service = require('@ignitial/iio-services').Service
+const Gateway = require('@ignitial/iio-services').Gateway
 const utils = require('@ignitial/iio-services').utils
 const config = require('./config')
 
 class ChartsInstance {
-  constructor(id) {
+  constructor(id, service) {
     this._id = id
 
     this.interval = null
+    this._service = service
   }
 
   _preset(period) {
@@ -16,7 +17,7 @@ class ChartsInstance {
         this.interval = null
       }
 
-      this.interval = setInterval(this.process, period)
+      this.interval = setInterval(this.process.bind(this), period)
       resolve()
     })
   }
@@ -33,13 +34,14 @@ class ChartsInstance {
   process(data) {
     /* @_GET_ */
     return new Promise((resolve, reject) => {
-      this._pushEvent('data:' + this._id, data)
+      this._service._pushEvent('data:' + this._id, data || {})
+      console.log('data process call with data', data)
       resolve()
     })
   }
 }
 
-class Charts extends Service {
+class Charts extends Gateway {
   constructor(options) {
     super(options)
 
@@ -54,7 +56,7 @@ class Charts extends Service {
           delete this._instances[id]
         }
 
-        this._instances[id] = new ChartsInstance(id)
+        this._instances[id] = new ChartsInstance(id, this)
         let methods = utils.getMethods(this._instances[id])
 
         for (let method of methods) {
@@ -79,17 +81,17 @@ class Charts extends Service {
 
   workflowNodePreset(node) {
     return new Promise((resolve, reject) => {
-      if (this._instances[node.instance]) {
+      utils.waitForPropertyInit(this._instances, node.instance).then(instance => {
+console.log('node preset trial', node.id, node.label, node.options)
         if (node.options.period) {
-          this._instances[node.instance]._preset(node.options.period).then(() => {
+          instance._preset(node.options.period).then(() => {
+    console.log('node preset done', node.id, node.label)
             resolve()
           }).catch(err => reject(err))
         } else {
           resolve()
         }
-      } else {
-        reject(new Error('missing instance'))
-      }
+      }).catch(err => reject(err))
     })
   }
 
