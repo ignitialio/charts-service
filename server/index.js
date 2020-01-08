@@ -8,6 +8,8 @@ class ChartsInstance {
 
     this.interval = null
     this._service = service
+    // grants et when preset and needed for service method call
+    this.grants = null
   }
 
   _preset(period) {
@@ -17,7 +19,11 @@ class ChartsInstance {
         this.interval = null
       }
 
-      this.interval = setInterval(this.process.bind(this), period)
+      this.interval = setInterval(() => {
+        this._service.callEventuallyBoundMethod.apply(this._service,
+          [ 'process_' + this._id, this.grants ])
+      }, period)
+
       resolve()
     })
   }
@@ -34,8 +40,9 @@ class ChartsInstance {
   process(data) {
     /* @_GET_ */
     return new Promise((resolve, reject) => {
-      this._service._pushEvent('data:' + this._id, data || {})
-      console.log('data process call with data', data)
+      // this is again service one ! not instance one
+      this._pushEvent('data:' + this._id, data || {})
+      console.log(new Date(), 'data process call with data', data)
       resolve()
     })
   }
@@ -56,6 +63,7 @@ class Charts extends Gateway {
           delete this._instances[id]
         }
 
+        // passes service to instance as well !
         this._instances[id] = new ChartsInstance(id, this)
         let methods = utils.getMethods(this._instances[id])
 
@@ -79,13 +87,13 @@ class Charts extends Gateway {
     })
   }
 
-  workflowNodePreset(node) {
+  workflowNodePreset(node, grants) {
     return new Promise((resolve, reject) => {
       utils.waitForPropertyInit(this._instances, node.instance).then(instance => {
-console.log('node preset trial', node.id, node.label, node.options)
+        // sets grants for further use
+        instance.grants = grants
         if (node.options.period) {
           instance._preset(node.options.period).then(() => {
-    console.log('node preset done', node.id, node.label)
             resolve()
           }).catch(err => reject(err))
         } else {
