@@ -20,6 +20,7 @@ export default {
   },
   methods: {
     handleData(data) {
+      console.log(data)
       this.rawData = data
     }
   },
@@ -32,7 +33,7 @@ export default {
       this._listeners.onData)
   },
   beforeDestroy() {
-    this.$ws.socket.off('service:event:charts:data:' + this.instanceId, 
+    this.$ws.socket.off('service:event:charts:data:' + this.instanceId,
       this._listeners.onData)
   }
 }

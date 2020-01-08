@@ -1,15 +1,16 @@
 <template>
-  <div :id="id" class="charts-layout">
+  <div :id="id" class="charts-layout" @dblclick="handleDebug">
     <ig-form class="charts-configuration"
       v-if="!!settings && !!schema && options" :root="settings"
       v-model="settings" :schema="schema"
       @input="handleSettings"></ig-form>
 
-    <chart-widget v-if="!options && !settings.rawVizualisation"
+    <charts-widget :id="id" v-if="!options && !settings.rawVizualisation"
       :instanceId="node.instance"
       :settings="settings" class="charts-widget"/>
 
-    <charts-raw-data v-if="!options && settings.rawVizualisation" class="charts-widget"
+    <charts-raw-data v-if="!options && settings.rawVizualisation"
+      class="charts-widget"
       :instanceId="node.instance"/>
   </div>
 </template>
@@ -56,6 +57,9 @@ export default {
         chartsService.workflowNodePreset(this.node).catch(err => console.log(err))
       }).catch(err => console.log(err))
     },
+    handleDebug() {
+      console.log('DEBUG charts settings', $j(this.settings))
+    },
     handleSettings(val) {
       console.log('CHARTS', $j(val))
       this.$emit('update:options', val)
@@ -65,6 +69,8 @@ export default {
   mounted() {
     if (this.options) {
       this.settings = JSON.parse(JSON.stringify(this.options))
+    } else if (this.node.options) {
+      this.settings = JSON.parse(JSON.stringify(this.node.options))
     } else {
       this.$emit('update:options', this.settings)
     }

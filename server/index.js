@@ -40,9 +40,9 @@ class ChartsInstance {
   process(data) {
     /* @_GET_ */
     return new Promise((resolve, reject) => {
-      // this is again service one ! not instance one
-      this._pushEvent('data:' + this._id, data || {})
-      console.log(new Date(), 'data process call with data', data)
+      // this instance one, since bind to it when instance added and method mapped
+      this._service._pushEvent('charts:data:' + this._id, data || {})
+      console.log(new Date(), 'charts:data:' + this._id, 'data process call with data', data)
       resolve()
     })
   }
@@ -68,7 +68,7 @@ class Charts extends Gateway {
         let methods = utils.getMethods(this._instances[id])
 
         for (let method of methods) {
-          this[method + '_' + id] = this._instances[id][method]
+          this[method + '_' + id] = this._instances[id][method].bind(this._instances[id])
         }
 
         resolve()
