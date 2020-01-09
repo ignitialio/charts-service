@@ -61,7 +61,6 @@ export default {
       console.log('DEBUG charts settings', $j(this.settings))
     },
     handleSettings(val) {
-      console.log('CHARTS', $j(val))
       this.$emit('update:options', val)
       this._preset()
     }

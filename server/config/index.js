@@ -291,9 +291,9 @@ module.exports = {
               color: {
                 title: 'Color',
                 type: 'string',
+                default: 'deepskyblue',
                 _meta: {
                   type: 'color',
-                  default: 'deepskyblue',
                   i18n: {
                     'Color': [ 'Couleur', 'Color' ]
                   },
@@ -381,7 +381,10 @@ module.exports = {
                   type: null,
                   selection: {
                     provider: 'ig-json-picker',
-                    event: 'selection:jsonpath'
+                    event: 'selection:jsonpath',
+                    inputData: {
+                      event: 'json-picker:data'
+                    }
                   },
                   i18n: {
                     'Data path': [ 'Chemin des données', 'Ruta de datos' ]
