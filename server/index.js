@@ -43,7 +43,8 @@ class ChartsInstance {
       // this instance one, since bind to it when instance added and method mapped
       this._service._pushEvent('charts:data:' + this._id, data || {})
       console.log(new Date(), 'charts:data:' + this._id, 'data process call with data', data)
-      resolve()
+      // pass data for testing purposes or for direct use
+      resolve(data)
     })
   }
 }
