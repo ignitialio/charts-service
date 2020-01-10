@@ -16,86 +16,28 @@ import cloneDeep from 'lodash/cloneDeep'
 export default {
   props: {
     id: String,
-    value: Object,
     width: Number,
-    height: Number
+    height: Number,
+    settings: null,
+    instanceId: String
   },
   data: () => {
     return {
-      settings: null,
       chartOptions: null,
       series: []
     }
   },
-  watch: {
-    value: {
-      handler: function(val) {
-        this.reinitialize()
-      },
-      deep: true
-    }
-  },
   methods: {
-    /* -------------------------------------------------------------------------
-       Reinitialize
-       ------------------------------------------------------------------------- */
-    async reinitialize() {
-      clearInterval(this.updateTimer)
-
-      await this.$utils.waitForProperty(this, '$services')
-
-      this.series = []
-
-      this.$utils.waitForProperty(this, 'etl', 5000).then(() => {
-        this.updateRawData(true) // emit ETL object
-
-        if (this.settings.realtime) {
-          this.activateRealtime()
-        } else {
-          this.buildSeries()
-        }
-      }).catch(err => console.log(err))
-    },
-    /* -------------------------------------------------------------------------
-       Activate real time update
-       ------------------------------------------------------------------------- */
-    async activateRealtime() {
-      if (this.settings.period) {
-        if (this.settings.eventDriven) {
-          this.listeners = {
-            handleData: this.updateSeriesWithOverflowControl.bind(this)
-          }
-        } else {
-          await this.buildSeries() // build series data for further use
-
-          if (this.updateTimer) {
-            clearInterval(this.updateTimer)
-          }
-
-          this.updateTimer = setInterval(this.updateSeries,
-            this.settings.period)
-        }
-      }
-    },
-    /* -------------------------------------------------------------------------
-      Update data
-      -------------------------------------------------------------------------- */
-    updateRawData(emitETL = false) {
-      return new Promise((resolve, reject) => {
-
-      })
-    },
     /* -------------------------------------------------------------------------
       Compute series
        ------------------------------------------------------------------------- */
-    async buildSeries(data) {
+    async buildSeries(rawData) {
       let settings = this.settings
 
       try {
         let series = []
         let colors = []
         let categories = []
-        let rawData = data || await this.updateRawData()
 
         if (settings.type === 'pie' ||
           settings.type === 'donut') { 
@@ -105,6 +47,7 @@ export default {
         } else {
           if (settings.series) {
             for (let serie of settings.series) {
+
               let serieData = this.$utils.getByPath(rawData, serie.path)
 
               if (serie.axis === 'Y') {
@@ -112,16 +55,13 @@ export default {
 
                 series.push({
                   name: serie.name,
-                  data: serieData || []
+                  data: Array.isArray(serieData) ? serieData : [ serieData ]
                 })
-
-              } else if (serie.axis === 'X') {
+              } else if (serie.axis === 'X' && !settings.selfTrig) {
                 categories = categories.concat(serieData || [])
               } else {
                 categories = null
                 colors.push(serie.color)
-
-                series.push({ name: serie.name, data: [] })
               }
             }
 
@@ -187,7 +127,9 @@ export default {
             }
 
             this.series = series
-            // console.log('BUILD SERIES', this.chartOptions.xaxis.categories.length, this.series[0].data.length)
+
+            console.log('BUILD SERIES', $j(this.series),
+              this.chartOptions.xaxis.categories, this.series[0].data)
           }
         }
       } catch (err) {
@@ -197,24 +139,8 @@ export default {
     /* -------------------------------------------------------------------------
       Update series
        ------------------------------------------------------------------------- */
-    async updateSeriesWithOverflowControl(data) {
-      let now = Date.now()
-      if (this.updateSeriesTimestamp) {
-        let delta = now - this.updateSeriesTimestamp
-        this.updateSeriesTimestamp = now
-        if (delta < 500) return
-      } else {
-        this.updateSeriesTimestamp = now
-      }
-
-      this.updateSeries(data)
-    },
-    /* -------------------------------------------------------------------------
-      Update series
-       ------------------------------------------------------------------------- */
-    async updateSeries(data) {
-      data = data || await this.updateRawData()
-
+    updateSeries(data) {
+      console.log('series update', data, this.chartOptions)
       if (!this.chartOptions) {
         this.buildSeries(data)
       }
@@ -226,15 +152,25 @@ export default {
 
             let value = this.$utils.getByPath(data, this.settings.series[i].path)
 
-            let item = {
-              x: new Date().getTime(),
-              y: value
-            }
-            // console.log(data, this.settings.sinkConfig[i].path, item)
-            serie.data.push(item)
-            // console.log(this.$refs.chart.chart)
-            if (this.$refs.chart && this.$refs.chart.chart) {
-              this.$refs.chart.chart.updateSeries(this.series)
+            console.log(this.settings.series[i].axis, this.settings.series[i].path, value)
+            if (this.settings.series[i].axis === 'Y' && this.settings.selfTrig) {
+              let item = {
+                x: new Date().getTime(),
+                y: value
+              }
+
+              serie.data.push(item)
+              console.log($j(item))
+              let last = serie.data[serie.data.length - 1]
+              let first = serie.data[0]
+              if (last.x - first.x > this.settings.timeWindow) {
+                serie.data.shift()
+              }
+
+              // console.log(this.$refs.chart.chart)
+              if (this.$refs.chart && this.$refs.chart.chart) {
+                this.$refs.chart.chart.updateSeries(this.series)
+              }
             }
           }
           break
@@ -243,7 +179,7 @@ export default {
     /* -------------------------------------------------------------------------
       Compute categories
        ------------------------------------------------------------------------- */
-    async computeCategories(serie) {
+    computeCategories(serie) {
       let labels = []
       let series = []
       let colors = []
@@ -251,22 +187,6 @@ export default {
       try {
         if (serie.categories) {
           let rawData
-
-          switch (this.settings.sinkType) {
-            case 'assets':
-              let projection = { name: 1 }
-              projection[serie.path] = 1
-
-              let dataService = await this.$modules.waitForService('data')
-              rawData = await dataService.assets.findInGroups({
-                groups: [ this.settings.sink._id ],
-                projection: projection
-              })
-
-              rawData = map(rawData,
-                  e => { return this.$utils.getByPath(e, serie.path) })
-              break
-          }
 
           for (let category of serie.categories) {
             colors.push(category.color)
@@ -296,15 +216,25 @@ export default {
     }
   },
   async mounted() {
-    this.settings = cloneDeep(this.value)
+    this._listeners = {
+      onData: this.updateSeries.bind(this)
+    }
 
-    let domRoot = await this.$utils.waitForDOMReady('#' + this.id)
-    // console.log('width', this.width + 'px', 'height', this.height + 'px')
-    domRoot.style('width', this.width + 'px')
-      .style('height', this.height + 'px')
+    let bb = this.$el.getBoundingClientRect()
+    let width = this.width || (bb.width - 16)
+    let height = this.height || (bb.height - 40)
+    let domRoot = await this.$utils.waitForDOMReady('#cw_' + this.id)
+    console.log('width', width + 'px', 'height', height + 'px')
+    domRoot.style('width', width + 'px')
+      .style('height', height + 'px')
+
+    this.$ws.socket.on('service:event:charts:data:' + this.instanceId,
+      this._listeners.onData)
   },
   beforeDestroy() {
     clearInterval(this.updateTimer)
+    this.$ws.socket.off('service:event:charts:data:' + this.instanceId,
+      this._listeners.onData)
   }
 }
 </script>
