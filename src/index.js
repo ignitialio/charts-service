@@ -1,5 +1,3 @@
-import VueApexCharts from 'vue-apexcharts'
-
 import Charts from './components/Charts.vue'
 import ChartsWidget from './components/ChartsWidget.vue'
 import RawData from './components/RawData.vue'
@@ -12,8 +10,6 @@ global.iios_charts = function(Vue) {
   Vue.component('charts', Charts)
   Vue.component('charts-widget', ChartsWidget)
   Vue.component('charts-raw-data', RawData)
-  // apexcharts
-  Vue.component('apexchart', VueApexCharts)
 
   let register = () => {
     // EXEAMPLE

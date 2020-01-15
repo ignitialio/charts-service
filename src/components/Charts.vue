@@ -1,7 +1,7 @@
 <template>
   <div :id="id" class="charts-layout" @dblclick="handleDebug">
     <ig-form class="charts-configuration"
-      v-if="!!settings && !!schema && options" :root="settings"
+      v-if="!!settings && !!schema && !!options" :root="settings"
       v-model="settings" :schema="schema"
       @input="handleSettings"></ig-form>
 
@@ -30,6 +30,7 @@ export default {
     options: {
       handler: function(val) {
         this.settings = JSON.parse(JSON.stringify(this.options))
+        console.log('update options on watch', $j(this.settings))
       },
       deep: true
     }
@@ -68,10 +69,13 @@ export default {
   mounted() {
     if (this.options) {
       this.settings = JSON.parse(JSON.stringify(this.options))
+      console.log('get options', $j(this.settings))
     } else if (this.node.options) {
       this.settings = JSON.parse(JSON.stringify(this.node.options))
+      console.log('get options from node', $j(this.settings))
     } else {
       this.$emit('update:options', this.settings)
+      console.log('get options from settings', $j(this.settings))
     }
 
     // dev

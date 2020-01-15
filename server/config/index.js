@@ -166,7 +166,7 @@ module.exports = {
           title: 'Chart type',
           type: 'string',
           enum: [
-            'bar', 'bubble', 'column', 'heatmap', 'line', /* 'mixed', */ 'pie'
+            'bar', 'bubble', 'column', 'heatmap', 'line', 'pie'
           ],
           _meta: {
             type: 'enum',
@@ -254,38 +254,7 @@ module.exports = {
                   type: null,
                   i18n: {
                     'Name': [ 'Nom', 'Nombre' ]
-                  },
-                  showIf: [
-                    {
-                      jsonpath: '$.type',
-                      condition: 'eq',
-                      value: 'mixed'
-                    },
-                    {
-                      operator: '||'
-                    },
-                    {
-                      jsonpath: '$.type',
-                      condition: 'eq',
-                      value: 'column'
-                    },
-                    {
-                      operator: '||'
-                    },
-                    {
-                      jsonpath: '$.type',
-                      condition: 'eq',
-                      value: 'bar'
-                    },
-                    {
-                      operator: '||'
-                    },
-                    {
-                      jsonpath: '$.type',
-                      condition: 'eq',
-                      value: 'line'
-                    }
-                  ]
+                  }
                 }
               },
               color: {
@@ -296,86 +265,12 @@ module.exports = {
                   type: 'color',
                   i18n: {
                     'Color': [ 'Couleur', 'Color' ]
-                  },
-                  showIf: [
-                    {
-                      jsonpath: '$.type',
-                      condition: 'eq',
-                      value: 'mixed'
-                    },
-                    {
-                      operator: '||'
-                    },
-                    {
-                      jsonpath: '$.type',
-                      condition: 'eq',
-                      value: 'column'
-                    },
-                    {
-                      operator: '||'
-                    },
-                    {
-                      jsonpath: '$.type',
-                      condition: 'eq',
-                      value: 'bar'
-                    },
-                    {
-                      operator: '||'
-                    },
-                    {
-                      jsonpath: '$.type',
-                      condition: 'eq',
-                      value: 'line'
-                    }
-                  ]
+                  }
                 }
               },
-              axis: {
+              xpath: {
                 type: 'string',
-                title: 'Axis',
-                enum: [ 'X', 'Y' ],
-                _meta: {
-                  type: 'enum',
-                  default: 'X',
-                  i18n: {
-                    'Axis': [ 'Axe', 'Eje' ]
-                  },
-                  showIf: [
-                    {
-                      jsonpath: '$.type',
-                      condition: 'eq',
-                      value: 'mixed'
-                    },
-                    {
-                      operator: '||'
-                    },
-                    {
-                      jsonpath: '$.type',
-                      condition: 'eq',
-                      value: 'column'
-                    },
-                    {
-                      operator: '||'
-                    },
-                    {
-                      jsonpath: '$.type',
-                      condition: 'eq',
-                      value: 'bar'
-                    },
-                    {
-                      operator: '||'
-                    },
-                    {
-                      jsonpath: '$.type',
-                      condition: 'eq',
-                      value: 'line'
-                    }
-                  ]
-                }
-              },
-              path: {
-                type: 'string',
-                title: 'Data path',
+                title: 'X data path',
                 default: '',
                 _meta: {
                   type: null,
@@ -387,78 +282,25 @@ module.exports = {
                     }
                   },
                   i18n: {
-                    'Data path': [ 'Chemin des données', 'Ruta de datos' ]
+                    'X data path': [ 'Chemin des données (abscisse)', 'Ruta de datos X' ]
                   }
                 }
               },
-              categories: {
-                title: 'Categories',
-                type: 'array',
-                items: {
-                  title: 'Category',
-                  type: 'object',
-                  properties: {
-                    name: {
-                      type: 'string',
-                      title: 'Name',
-                      default: '',
-                      _meta: {
-                        type: null,
-                        i18n: {
-                          'Name': [ 'Nom', 'Nombre' ]
-                        }
-                      }
-                    },
-                    color: {
-                      title: 'Color',
-                      type: 'string',
-                      default: 'deepskyblue',
-                      _meta: {
-                        type: 'color',
-                        i18n: {
-                          'Color': [ 'Couleur', 'Color' ]
-                        }
-                      }
-                    },
-                    comparator: {
-                      type: 'string',
-                      title: 'Comparator',
-                      enum: [ '<', '<=', '=', '>=', '>', '<=...<', '<=...=<', '<...=<', '<...<'],
-                      _meta: {
-                        type: 'enum',
-                        i18n: {
-                          'Comparator': [ 'Comparateur', 'Comparateur' ]
-                        }
-                      }
-                    },
-                    parameters: {
-                      title: 'Parameters',
-                      type: 'string',
-                      default: '',
-                      _meta: {
-                        type: null,
-                        i18n: {
-                          'Parameters': [ 'Paramètres', 'Parametros' ]
-                        }
-                      }
-                    }
-                  },
-                  _meta: {
-                    type: null,
-                    i18n: {
-                      'Category': [ 'Catégorie', 'Categoria' ]
-                    }
-                  }
-                },
+              ypath: {
+                type: 'string',
+                title: 'Y data path',
+                default: '',
                 _meta: {
                   type: null,
-                  i18n: {
-                    'Categories': [ 'Catégories', 'Categorias' ]
+                  selection: {
+                    provider: 'ig-json-picker',
+                    event: 'selection:jsonpath',
+                    inputData: {
+                      event: 'json-picker:data'
+                    }
                   },
-                  showIf: {
-                    jsonpath: '$.type',
-                    condition: 'eq',
-                    value: 'pie'
+                  i18n: {
+                    'Y data path': [ 'Chemin des données (ordonnée)', 'Ruta de datos Y' ]
                   }
                 }
               }
