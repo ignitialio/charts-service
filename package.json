@@ -50,7 +50,7 @@
   },
   "dependencies": {
     "@ignitial/iio-services": "^2.5.1",
-    "chart.js": "^2.9.3",
+    "chart.js": "^2.9.4",
     "chartkick": "^3.2.0",
     "json-schema-faker": "^0.5.0-rc23",
     "yaml": "^1.8.2"
